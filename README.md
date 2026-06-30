@@ -91,6 +91,19 @@ _.fnox-export = {
 | `fnox_bin` | string | `fnox` | Binary/path override. |
 | `unsafe_default_all` | bool | `false` | Required for unbounded default-profile export with no profile/config. |
 
+## Environment controls
+
+These process-level environment variables override plugin behavior before any
+`mise.toml` option is applied:
+
+| Variable | Values | Meaning |
+|:--|:--|:--|
+| `FNOX_EXPORT_DISABLE` | truthy value | Skip all fnox subprocesses and return an empty, cacheable env. Use this in CI or remote contexts where fnox is intentionally unavailable. |
+| `FNOX_EXPORT_ON_FAILURE` | `silent`, `warn`, `error` | Override every `on_failure` option. |
+| `FNOX_EXPORT_ON_MISSING` | `silent`, `warn`, `error` | Override every global/per-entry `on_missing` option. |
+
+Truthy values are anything except empty string, `0`, `false`, `no`, or `off`.
+
 ## Export entry grammar
 
 Every table entry uses `from` as the source key or pattern. Strings are

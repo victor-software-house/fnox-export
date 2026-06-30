@@ -88,14 +88,34 @@ local function collect_watch_files(fnox_bin, config, profiles, no_defaults)
     return watch_files
 end
 
+local function collect_disabled_watch_files(config, profiles)
+    local watch_files = {}
+    if util.is_nonempty(config) then
+        watch_files[#watch_files + 1] = config
+        return watch_files
+    end
+
+    watch_files[#watch_files + 1] = "fnox.toml"
+    watch_files[#watch_files + 1] = "fnox.local.toml"
+    for _, prof in ipairs(profiles) do
+        if util.is_nonempty(prof) then
+            watch_files[#watch_files + 1] = "fnox." .. prof .. ".toml"
+            watch_files[#watch_files + 1] = "fnox." .. prof .. ".local.toml"
+        end
+    end
+    return watch_files
+end
+
 function PLUGIN:MiseEnv(ctx)
     local opts = ctx.options or {}
     local fnox_bin = util.is_nonempty(opts.fnox_bin) and opts.fnox_bin or "fnox"
     local config = opts.config
     local profiles = normalize_profiles(opts)
 
-    local on_missing = util.validate_level("on_missing", opts.on_missing or "silent")
-    local on_failure = util.validate_level("on_failure", opts.on_failure or "warn")
+    local on_missing = util.validate_level("on_missing",
+        util.env_level("FNOX_EXPORT_ON_MISSING") or opts.on_missing or "silent")
+    local on_failure = util.validate_level("on_failure",
+        util.env_level("FNOX_EXPORT_ON_FAILURE") or opts.on_failure or "warn")
 
     if opts.fetch ~= nil then
         error("fnox-export: unsupported option 'fetch'; fnox-export always uses batched export")
@@ -126,7 +146,12 @@ function PLUGIN:MiseEnv(ctx)
         export_all_mode = true
     end
 
+    if util.env_truthy("FNOX_EXPORT_DISABLE") then
+        return util.make_result(true, collect_disabled_watch_files(config, profiles), {})
+    end
+
     local watch_files = collect_watch_files(fnox_bin, config, profiles, no_defaults)
+
     local profiles_to_run = #profiles > 0 and profiles or { "" }
 
     local source_map, had_failure = fnox.batch_fetch(fnox_bin, config,

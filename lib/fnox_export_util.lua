@@ -71,6 +71,30 @@ function M.validate_level(name, value)
     return value
 end
 
+function M.env(name)
+    if os == nil or os.getenv == nil then
+        return nil
+    end
+    return os.getenv(name)
+end
+
+function M.env_truthy(name)
+    local value = M.env(name)
+    if value == nil or value == "" then
+        return false
+    end
+    local normalized = string.lower(value)
+    return normalized ~= "0" and normalized ~= "false" and normalized ~= "no" and normalized ~= "off"
+end
+
+function M.env_level(name)
+    local value = M.env(name)
+    if value == nil or value == "" then
+        return nil
+    end
+    return M.validate_level(name, value)
+end
+
 function M.handle_level(level, message)
     if level == "error" then
         error(message)
