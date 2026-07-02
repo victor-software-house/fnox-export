@@ -108,6 +108,17 @@ end
 
 function PLUGIN:MiseEnv(ctx)
     local opts = ctx.options or {}
+
+    -- Early return: skip all fnox subprocesses and option validation when
+    -- explicitly disabled. Must be first so CI with FNOX_EXPORT_DISABLE=1
+    -- never errors on invalid configs.
+    if util.env_truthy("FNOX_EXPORT_DISABLE") then
+        local config = opts.config
+        local ok, profiles = pcall(normalize_profiles, opts)
+        if not ok then profiles = {} end
+        return util.make_result(true, collect_disabled_watch_files(config, profiles), {})
+    end
+
     local fnox_bin = util.is_nonempty(opts.fnox_bin) and opts.fnox_bin or "fnox"
     local config = opts.config
     local profiles = normalize_profiles(opts)
@@ -144,10 +155,6 @@ function PLUGIN:MiseEnv(ctx)
             return util.make_result(false, { "fnox.toml", "fnox.local.toml" }, {})
         end
         export_all_mode = true
-    end
-
-    if util.env_truthy("FNOX_EXPORT_DISABLE") then
-        return util.make_result(true, collect_disabled_watch_files(config, profiles), {})
     end
 
     local watch_files = collect_watch_files(fnox_bin, config, profiles, no_defaults)
