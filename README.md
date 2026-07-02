@@ -93,16 +93,33 @@ _.fnox-export = {
 
 ## Environment controls
 
-These process-level environment variables override plugin behavior before any
-`mise.toml` option is applied:
+These process-level environment variables override plugin behavior. They are
+checked **before** any `mise.toml` option is parsed or validated, so they work
+even when the config is invalid or incomplete:
 
 | Variable | Values | Meaning |
 |:--|:--|:--|
-| `FNOX_EXPORT_DISABLE` | truthy value | Skip all fnox subprocesses and return an empty, cacheable env. Use this in CI or remote contexts where fnox is intentionally unavailable. |
+| `FNOX_EXPORT_DISABLE` | truthy value | Skip all fnox subprocesses, option validation, and return an empty, cacheable env. Checked first — before any other processing. Use this in CI or remote contexts where fnox is intentionally unavailable. |
 | `FNOX_EXPORT_ON_FAILURE` | `silent`, `warn`, `error` | Override every `on_failure` option. |
 | `FNOX_EXPORT_ON_MISSING` | `silent`, `warn`, `error` | Override every global/per-entry `on_missing` option. |
 
 Truthy values are anything except empty string, `0`, `false`, `no`, or `off`.
+
+### CI usage
+
+Set `FNOX_EXPORT_DISABLE=1` in the GitHub Actions job environment to suppress
+all fnox warnings in CI where fnox is not installed:
+
+```yaml
+jobs:
+  verify:
+    runs-on: pretty-little-runner
+    env:
+      FNOX_EXPORT_DISABLE: "1"
+```
+
+The env var is inherited by every step in the job, including those that call
+`mise install`, `mise run verify`, `bun install`, and `changesets/action`.
 
 ## Export entry grammar
 
