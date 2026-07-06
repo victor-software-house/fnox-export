@@ -4,7 +4,7 @@ PLUGIN = {}
 PLUGIN.name = "fnox-export"
 
 --- Plugin version (required)
-PLUGIN.version = "0.1.5"
+PLUGIN.version = "0.1.6"
 
 --- Plugin description (required)
 PLUGIN.description =
