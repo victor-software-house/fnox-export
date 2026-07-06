@@ -8,6 +8,7 @@ Mise environment plugin for selective, batched fnox profile export.
 - Never ship a minor or major bump unless the operator explicitly approves that bump in the current task.
 - Tags must be lightweight tags. Do not create annotated tags; mise plugin fetch can fail on annotated tag objects.
 - Consumer examples should use the published plugin URL without a fixed `#v...` ref unless the operator explicitly asks for a pin.
+- Release with `mise run release`: it gates on `check` (secrets + tests), then tags the current `metadata.lua` version (`vX.Y.Z`, lightweight) and pushes it. It refuses to run on a dirty tree, an unpushed HEAD, or an existing tag. One tag per version bump.
 
 ## Source of truth
 

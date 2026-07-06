@@ -25,3 +25,8 @@ run = "lefthook install"
 [tasks.check]
 description = "Full local check: secrets + tests"
 depends = ["secrets-scan-all", "test"]
+
+[tasks.release]
+description = "Tag the current metadata.lua version (lightweight) and push it"
+depends = ["check"]
+run = "bash scripts/release.sh"
