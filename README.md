@@ -94,9 +94,10 @@ _.fnox-export = {
 
 ## Environment controls
 
-These process-level environment variables override plugin behavior. They are
-checked **before** any `mise.toml` option is parsed or validated, so they work
-even when the config is invalid or incomplete:
+These process-level environment variables override plugin behavior.
+`FNOX_EXPORT_DISABLE` is checked first — before any option parsing or
+validation — so it works even when the config is invalid or incomplete. The
+others override their corresponding option during normal parsing:
 
 | Variable | Values | Meaning |
 |:--|:--|:--|
