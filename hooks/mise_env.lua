@@ -142,6 +142,20 @@ function PLUGIN:MiseEnv(ctx)
         error("fnox-export: invalid on_conflict value '" .. tostring(opts.on_conflict) .. "'")
     end
 
+    -- Force fnox's daemon on by default so repeated resolutions hit its
+    -- in-memory cache instead of a fresh provider round trip. FNOX_EXPORT_DAEMON
+    -- (process env) overrides the `daemon` option, which overrides the default.
+    if opts.daemon ~= nil and type(opts.daemon) ~= "boolean" then
+        error("fnox-export: 'daemon' must be a boolean")
+    end
+    local daemon = util.env_bool("FNOX_EXPORT_DAEMON")
+    if daemon == nil then
+        daemon = opts.daemon
+    end
+    if daemon == nil then
+        daemon = true
+    end
+
     local export_list = normalize_export_list(opts)
     local entries = nil
     local export_all_mode = false
@@ -162,7 +176,7 @@ function PLUGIN:MiseEnv(ctx)
     local profiles_to_run = #profiles > 0 and profiles or { "" }
 
     local source_map, had_failure = fnox.batch_fetch(fnox_bin, config,
-        profiles_to_run, no_defaults, on_conflict, on_failure)
+        profiles_to_run, no_defaults, on_conflict, on_failure, daemon)
 
     local env_vars
     if export_all_mode then

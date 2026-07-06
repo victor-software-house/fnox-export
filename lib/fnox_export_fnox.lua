@@ -4,8 +4,17 @@ local util = require("fnox_export_util")
 
 local M = {}
 
-function M.build_fnox_cmd(fnox_bin, config, profile, no_defaults, subcommand)
-    local parts = { fnox_bin }
+function M.build_fnox_cmd(fnox_bin, config, profile, no_defaults, subcommand, daemon)
+    local parts = {}
+    -- Force fnox's per-user daemon on. The plugin invokes `fnox -c <path>`,
+    -- whose single-file load does not merge the global fnox config, so the
+    -- daemon (configured there) is otherwise skipped and every resolution pays
+    -- a full provider round trip. FNOX_DAEMON=on (fnox reads it before the
+    -- config) makes repeated/offsite resolutions hit the in-memory cache.
+    if daemon then
+        parts[#parts + 1] = "FNOX_DAEMON=on"
+    end
+    parts[#parts + 1] = fnox_bin
     if util.is_nonempty(config) then
         parts[#parts + 1] = "-c " .. util.shell_quote(config)
     end
@@ -38,14 +47,14 @@ local function merge_source(source_map, source_profile, key, value, prof, on_con
     source_profile[key] = M.profile_name(prof)
 end
 
-function M.batch_fetch(fnox_bin, config, profiles_to_run, no_defaults, on_conflict, on_failure)
+function M.batch_fetch(fnox_bin, config, profiles_to_run, no_defaults, on_conflict, on_failure, daemon)
     local source_map = {}
     local source_profile = {}
     local had_failure = false
 
     for _, prof in ipairs(profiles_to_run) do
         local cmd_str = M.build_fnox_cmd(fnox_bin, config, prof, no_defaults,
-            "export --format json")
+            "export --format json", daemon)
         local ok, out = pcall(cmd.exec, cmd_str)
         if not ok then
             had_failure = true

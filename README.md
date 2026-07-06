@@ -89,6 +89,7 @@ _.fnox-export = {
 | `keep_mapped` | bool | `false` | If false, mapped/transformed source keys are not also emitted unchanged. |
 | `on_conflict` | enum | `last` | Profile source-key conflict mode: `last`, `first`, `error`. |
 | `fnox_bin` | string | `fnox` | Binary/path override. |
+| `daemon` | bool | `true` | Prepend `FNOX_DAEMON=on` to the `fnox export` call so resolution uses fnox's per-user daemon cache. Set `false` to stop forcing it and let fnox decide from its own config/environment. Overridden by `FNOX_EXPORT_DAEMON`. |
 | `unsafe_default_all` | bool | `false` | Required for unbounded default-profile export with no profile/config. |
 
 ## Environment controls
@@ -102,6 +103,7 @@ even when the config is invalid or incomplete:
 | `FNOX_EXPORT_DISABLE` | truthy value | Skip all fnox subprocesses, option validation, and return an empty, cacheable env. Checked first — before any other processing. Use this in CI or remote contexts where fnox is intentionally unavailable. |
 | `FNOX_EXPORT_ON_FAILURE` | `silent`, `warn`, `error` | Override every `on_failure` option. |
 | `FNOX_EXPORT_ON_MISSING` | `silent`, `warn`, `error` | Override every global/per-entry `on_missing` option. |
+| `FNOX_EXPORT_DAEMON` | truthy/falsy | Override the `daemon` option: truthy prepends `FNOX_DAEMON=on`, falsy omits it (fnox then decides from its own config/environment). |
 
 Truthy values are anything except empty string, `0`, `false`, `no`, or `off`.
 

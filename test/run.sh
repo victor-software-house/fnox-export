@@ -27,6 +27,11 @@ export MISE_CONFIG_DIR="$SANDBOX/mise-config"
 export MISE_GLOBAL_CONFIG_FILE="$SANDBOX/mise-config/config.toml"
 export MISE_YES=1
 export MISE_ENV_CACHE=0
+# Neutralize the daemon force by default: the 01-12 integration tests exercise
+# export/filter/map logic that is daemon-independent, and forcing fnox's daemon
+# on would spawn real daemons whose sockets outlive the sandbox and poison later
+# runs. 13-daemon.sh re-enables/tests the flag explicitly via a stub fnox.
+export FNOX_EXPORT_DAEMON=off
 mkdir -p "$HOME" "$XDG_CONFIG_HOME" "$MISE_DATA_DIR" "$MISE_CONFIG_DIR"
 
 # Run from the sandbox so mise never walks up into a real untrusted mise.toml.

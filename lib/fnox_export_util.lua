@@ -95,6 +95,21 @@ function M.env_level(name)
     return M.validate_level(name, value)
 end
 
+-- Presence-aware boolean env parse: nil when unset/empty (caller falls back),
+-- false for 0/false/no/off, true otherwise. Distinct from env_truthy so an
+-- explicit "off" can override an option that defaults to true.
+function M.env_bool(name)
+    local value = M.env(name)
+    if value == nil or value == "" then
+        return nil
+    end
+    local normalized = string.lower(value)
+    if normalized == "0" or normalized == "false" or normalized == "no" or normalized == "off" then
+        return false
+    end
+    return true
+end
+
 function M.handle_level(level, message)
     if level == "error" then
         error(message)
