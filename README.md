@@ -52,6 +52,11 @@ baseline: it loads a single fnox profile directly into mise. Reach for
 | Per-entry / global missing-key policy | — | yes |
 | CI disable switch | — | yes |
 
+`fnox-export` builds on the ground that
+[`jdx/mise-env-fnox`](https://github.com/jdx/mise-env-fnox) (by mise's author,
+[@jdx](https://github.com/jdx)) established — thanks to that project for the
+original fnox-in-mise integration. If your needs are simple, prefer it.
+
 ## Install
 
 Declare the plugin in `mise.toml`:
