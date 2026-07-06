@@ -1,28 +1,56 @@
 # fnox-export
 
-A [mise](https://mise.jdx.dev/) environment plugin that exports
+A [mise](https://mise.jdx.dev/) environment plugin that batch-exports
 [`fnox`](https://fnox.jdx.dev/) secrets into mise environment variables with a
-flat `from`-based grammar.
+flat `from`-based grammar — allow-listed exports, multi-profile merges,
+name mappings, and prefix transforms, all driven from your `mise.toml`.
 
-The plugin performs one batched `fnox export --format json` per profile and
-filters locally.
+## Features
+
+- **One fnox process, not N.** Runs a single batched `fnox export --format json`
+  per profile and filters locally, instead of N serial `fnox get` calls.
+- **Daemon-cached by default.** Forces fnox's per-user daemon on
+  (`FNOX_DAEMON=on`). Once the daemon is warmed for a profile, resolutions that
+  miss mise's env cache — a new shell, an expired TTL, an offsite `cd` — are
+  served from the daemon's memory (~0.1s) instead of re-hitting the provider
+  (seconds each). The first warm-up still resolves live. Opt out with
+  `daemon = false`.
+- **Allow-listed exports.** Export only the keys you name, with `*` wildcards.
+- **Name mappings and transforms.** `from`/`to` renames, `prefix`,
+  `strip_prefix`, and `replace_prefix` rewrites.
+- **Multi-profile merges** with explicit `last`/`first`/`error` conflict modes.
+- **CI-safe.** `FNOX_EXPORT_DISABLE=1` short-circuits every fnox subprocess.
+- **Warm `cd` pays nothing.** The work runs inside mise's environment
+  computation, so it is covered by mise's `env_cache` / `env_cache_ttl`.
 
 ## Why
 
 Resolving N secrets through N separate `fnox get` calls is N serial provider
 round trips and gives the plugin a different failure surface from fnox's batch
-export path. With a remote provider, this can dominate directory-activation time. A single
-`fnox export --format json` collapses that to one round trip. Because the work
-happens inside mise's environment computation, it is covered by mise's
-`env_cache` / `env_cache_ttl`, so a warm `cd` pays nothing.
+export path. With a remote provider, this can dominate directory-activation
+time. A single `fnox export --format json` collapses that to one round trip,
+and forcing the fnox daemon means repeated and offsite resolutions never re-hit
+the provider at all.
 
 The plugin is generic: secret names, provider names, profile choices, selectors,
 and mappings all live in the consuming project's `mise.toml`.
 
-If you only need to load a single fnox profile directly into mise, start with
-[jdx/mise-env-fnox](https://github.com/jdx/mise-env-fnox). It is the simpler
-baseline plugin. `fnox-export` is for allow-listed exports, multiple profile
-merges, and name-mapping workflows.
+## Compared to `jdx/mise-env-fnox`
+
+[`jdx/mise-env-fnox`](https://github.com/jdx/mise-env-fnox) is the simpler
+baseline: it loads a single fnox profile directly into mise. Reach for
+`fnox-export` when you need more than that.
+
+| Capability | `mise-env-fnox` | `fnox-export` |
+|:--|:--:|:--:|
+| Load a profile into mise | yes | yes |
+| Allow-listed key export (`*` globs) | — | yes |
+| `from`/`to` name mappings | — | yes |
+| Prefix transforms (`prefix`/`strip_prefix`/`replace_prefix`) | — | yes |
+| Multi-profile merge with conflict modes | — | yes |
+| Forces fnox daemon for cache hits | — | yes (default) |
+| Per-entry / global missing-key policy | — | yes |
+| CI disable switch | — | yes |
 
 ## Install
 
@@ -294,13 +322,41 @@ the mise config changes, or `env_cache_ttl` expires.
 Secret values are returned with `redact = true`, so mise redacts them in its own
 output unless the user explicitly opts out.
 
-## Test
+## Development
+
+Tooling is pinned in `mise.toml` (`fnox`, `gitleaks`, `lefthook`). Install it
+and wire the git hooks once:
 
 ```sh
-bash test/run.sh
+mise install          # fnox, gitleaks, lefthook at pinned versions
+mise run hooks-install # install lefthook pre-commit / pre-push hooks
 ```
 
-The test is fully isolated: it sandboxes `HOME` and the `MISE_*` dirs and uses
+### Tasks
+
+| Task | What it does |
+|:--|:--|
+| `mise run test` | Run the integration suite (`test/run.sh`). |
+| `mise run secrets-scan` | gitleaks scan of the staged diff (pre-commit gate). |
+| `mise run secrets-scan-all` | gitleaks scan of the full git history. |
+| `mise run check` | `secrets-scan-all` + `test`. |
+| `mise run hooks-install` | Install the lefthook git hooks. |
+
+### Git hooks
+
+`lefthook.yml` delegates to the tasks above, so hooks and manual runs share one
+definition:
+
+- **pre-commit** — `secrets-scan` (staged) and `test` (on `*.lua`/`*.sh`/`*.toml`).
+- **pre-push** — `secrets-scan-all` (full history).
+
+### Tests
+
+```sh
+mise run test   # or: bash test/run.sh
+```
+
+The suite is fully isolated: it sandboxes `HOME` and the `MISE_*` dirs and uses
 only non-secret `default` values, so it never reads the real global fnox catalog
 or mise config.
 

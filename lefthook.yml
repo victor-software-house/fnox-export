@@ -1,0 +1,20 @@
+# Git hooks for fnox-export. Every command delegates to a mise task so the hook
+# and the manual `mise run <task>` share one definition (no command drift).
+# Tools resolve through mise, so no global installs are required —
+# `mise run hooks-install` (or `lefthook install`) wires the hooks up.
+pre-commit:
+  parallel: true
+  commands:
+    secrets:
+      # Block a commit that stages a secret. Scans only the staged diff.
+      run: mise run secrets-scan
+    tests:
+      # The plugin is small and the suite is fast (~5s); run it on every commit.
+      glob: "*.{lua,sh,toml}"
+      run: mise run test
+
+pre-push:
+  commands:
+    secrets-history:
+      # Full-history secret scan before anything leaves the machine.
+      run: mise run secrets-scan-all

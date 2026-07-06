@@ -1,0 +1,27 @@
+# Tools needed to develop, test, and scan this plugin. fnox is required by the
+# integration suite (test/run.sh spawns real `fnox export` calls); gitleaks and
+# lefthook back the secret-scan and git hooks.
+[tools]
+fnox = "1.28.0"
+gitleaks = "8.30.1"
+lefthook = "2.1.9"
+
+[tasks.test]
+description = "Run the integration test suite"
+run = "bash test/run.sh"
+
+[tasks.secrets-scan]
+description = "Scan staged changes for secrets (pre-commit gate)"
+run = "gitleaks git --staged --redact --no-banner ."
+
+[tasks.secrets-scan-all]
+description = "Scan the full git history for secrets"
+run = "gitleaks git --redact --no-banner ."
+
+[tasks.hooks-install]
+description = "Install lefthook git hooks"
+run = "lefthook install"
+
+[tasks.check]
+description = "Full local check: secrets + tests"
+depends = ["secrets-scan-all", "test"]

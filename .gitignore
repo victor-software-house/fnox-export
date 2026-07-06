@@ -1,0 +1,7 @@
+# Local gitleaks report artifacts
+gl-*.json
+*.sarif
+
+# mise local overrides
+mise.local.toml
+.mise.local.toml
