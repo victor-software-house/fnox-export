@@ -86,7 +86,7 @@ _.fnox-export = {
   fnox_bin = "$FNOX_BIN",
   profiles = ["demo"],
   export = [
-    { from = "ALPHA_TOKEN", replace_prefix = ["ALPHA_TOKEN", "lowercase"] },
+    { from = "ALPHA_TOKEN", replace_prefix = ["ALPHA_TOKEN", "invalid-target"] },
   ],
 }
 TOML

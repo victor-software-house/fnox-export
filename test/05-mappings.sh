@@ -31,7 +31,7 @@ TOML
 trust_project "$P"
 check "05.3 source key named FROM works" "$([[ "$(getval "$P" OUTPUT_KEY)" == "from-upper" ]] && echo 1 || echo 0)"
 
-P="$SANDBOX/05-lowercase-mapping"
+P="$SANDBOX/05-mixed-case-mapping"
 setup_project "$P"
 cat > "$P/mise.toml" <<TOML
 [env]
@@ -39,12 +39,27 @@ _.fnox-export = {
   fnox_bin = "$FNOX_BIN",
   profiles = ["demo"],
   export = [
-    { from = "ALPHA_TOKEN", to = "lowercase_target" },
+    { from = "ALPHA_TOKEN", to = "TF_TOKEN_terraform_indeed_tech" },
   ],
 }
 TOML
 trust_project "$P"
-expect_fail "05.4 lowercase to target rejected" "$P"
+check "05.4 mixed-case Terraform host token target works" "$([[ "$(getval "$P" TF_TOKEN_terraform_indeed_tech)" == "alpha-value" ]] && echo 1 || echo 0)"
+
+P="$SANDBOX/05-invalid-mapping"
+setup_project "$P"
+cat > "$P/mise.toml" <<TOML
+[env]
+_.fnox-export = {
+  fnox_bin = "$FNOX_BIN",
+  profiles = ["demo"],
+  export = [
+    { from = "ALPHA_TOKEN", to = "invalid-target" },
+  ],
+}
+TOML
+trust_project "$P"
+expect_fail "05.5 punctuation in target rejected" "$P"
 
 P="$SANDBOX/05-missing-mapping-silent"
 setup_project "$P"

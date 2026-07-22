@@ -66,7 +66,7 @@ local function normalize_entry(entry, idx, global_on_missing)
         if not util.is_valid_env_name(entry.to) then
             error("fnox-export: invalid export entry " .. idx
                 .. ": to target '" .. entry.to
-                .. "' must match [A-Z_][A-Z0-9_]*")
+                .. "' must match [A-Za-z_][A-Za-z0-9_]*")
         end
         if M.has_transform(entry) then
             error("fnox-export: invalid export entry " .. idx

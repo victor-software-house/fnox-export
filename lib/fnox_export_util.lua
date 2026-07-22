@@ -60,7 +60,7 @@ function M.glob_match(glob, key)
 end
 
 function M.is_valid_env_name(name)
-    return type(name) == "string" and name:match("^[A-Z_][A-Z0-9_]*$") ~= nil
+    return type(name) == "string" and name:match("^[A-Za-z_][A-Za-z0-9_]*$") ~= nil
 end
 
 function M.validate_level(name, value)

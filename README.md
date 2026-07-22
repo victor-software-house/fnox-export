@@ -184,8 +184,8 @@ export = [
 ]
 ```
 
-`from` is the source fnox key. `to` is the final env var name and must match
-`[A-Z_][A-Z0-9_]*`.
+`from` is the source fnox key. `to` is the final environment variable name and
+must match `[A-Za-z_][A-Za-z0-9_]*` (POSIX-compatible, including host-scoped names such as Terraform's `TF_TOKEN_example_com`).
 
 ### 3. Transform
 
