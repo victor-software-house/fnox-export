@@ -38,3 +38,21 @@ _.fnox-export = {
 TOML
 trust_project "$P"
 check "02.4 explicit config path exports configured key" "$([[ "$(getval "$P" CONFIG_TOKEN)" == "config-value" ]] && echo 1 || echo 0)"
+
+P="$SANDBOX/02-config-root"
+setup_project "$P"
+mkdir -p "$P/nested/deeper"
+cat > "$P/custom-fnox.toml" <<TOML
+[secrets]
+CONFIG_ROOT_TOKEN = { default = "config-root-value" }
+TOML
+cat > "$P/mise.toml" <<TOML
+[env]
+_.fnox-export = {
+  fnox_bin = "$FNOX_BIN",
+  config = "{{config_root}}/custom-fnox.toml",
+  export = ["CONFIG_ROOT_TOKEN"],
+}
+TOML
+trust_project "$P"
+check "02.5 config_root path exports from nested cwd" "$([[ "$(getval "$P/nested/deeper" CONFIG_ROOT_TOKEN)" == "config-root-value" ]] && echo 1 || echo 0)"

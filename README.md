@@ -117,7 +117,7 @@ _.fnox-export = {
 | `export` | string or array | unset | Output spec. Strings are `{ from = "KEY" }` shorthand; tables are flat `from` entries. |
 | `on_missing` | enum | `silent` | Missing source behavior: `silent`, `warn`, or `error`. Per-entry override supported. |
 | `on_failure` | enum | `warn` | Batch `fnox export` / parse failure behavior: `silent`, `warn`, or `error`. |
-| `config` | string | unset | Explicit fnox config path; maps to `fnox -c <path>`. Bypasses global/project discovery. |
+| `config` | string | unset | Explicit fnox config path; maps to `fnox -c <path>`. `{{config_root}}` expands to the directory containing the declaring mise config. Bypasses global/project discovery. |
 | `no_defaults` | bool | `true` when profiles/profile set | Maps to fnox `--no-defaults`; prevents top-level secrets from merging into profile export. |
 | `keep_mapped` | bool | `false` | If false, mapped/transformed source keys are not also emitted unchanged. |
 | `on_conflict` | enum | `last` | Profile source-key conflict mode: `last`, `first`, `error`. |
