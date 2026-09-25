@@ -141,6 +141,15 @@ others override their corresponding option during normal parsing:
 
 Truthy values are anything except empty string, `0`, `false`, `no`, or `off`.
 
+### Re-entry guard
+
+The plugin sets `__FNOX_EXPORT_ACTIVE=1` on every fnox process it spawns, and
+spawns nothing when it runs with that variable set. This matters when `fnox`
+on `PATH` is a mise shim: each plugin call to fnox is then mise again, which
+evaluates the env and runs the plugin again. Without the guard that recursion
+fills the per-user process table. With it, the nested evaluation returns an
+empty, uncacheable result and the shim runs the real fnox.
+
 ### CI usage
 
 Set `FNOX_EXPORT_DISABLE=1` in the GitHub Actions job environment to suppress

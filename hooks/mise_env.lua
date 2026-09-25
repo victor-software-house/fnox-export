@@ -130,6 +130,13 @@ function PLUGIN:MiseEnv(ctx)
         return util.make_result(true, collect_disabled_watch_files(config, profiles), {})
     end
 
+    -- Re-entry: this env is being evaluated beneath one of this plugin's own
+    -- fnox calls (a mise shim named fnox). Spawn nothing, and mark the empty
+    -- result uncacheable so it never stands in for the real env.
+    if util.env_truthy(fnox.ACTIVE_ENV) then
+        return util.make_result(false, {}, {})
+    end
+
     local fnox_bin = util.is_nonempty(opts.fnox_bin) and opts.fnox_bin or "fnox"
     local profiles = normalize_profiles(opts)
 

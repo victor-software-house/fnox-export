@@ -4,8 +4,13 @@ local util = require("fnox_export_util")
 
 local M = {}
 
+-- Set on every fnox call the plugin spawns. When `fnox` on PATH is a mise shim,
+-- that call is mise again, which evaluates the env and runs this plugin; the
+-- hook sees this variable and spawns nothing, so the recursion stops at one level.
+M.ACTIVE_ENV = "__FNOX_EXPORT_ACTIVE"
+
 function M.build_fnox_cmd(fnox_bin, config, profile, no_defaults, subcommand, daemon)
-    local parts = {}
+    local parts = { M.ACTIVE_ENV .. "=1" }
     -- Force fnox's per-user daemon on. The plugin invokes `fnox -c <path>`,
     -- whose single-file load does not merge the global fnox config, so the
     -- daemon (configured there) is otherwise skipped and every resolution pays
