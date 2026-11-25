@@ -8,7 +8,10 @@ name mappings, and prefix transforms, all driven from your `mise.toml`.
 ## Features
 
 - **One fnox process, not N.** Runs a single batched `fnox export --format json`
-  per profile and filters locally, instead of N serial `fnox get` calls.
+  per profile instead of N serial `fnox get` calls.
+- **Resolves only what you export.** When every `export` entry names its source
+  exactly (no `*`), the plugin asks fnox for just those keys, so other secrets
+  in the profile cost no provider call. Requires fnox 1.42.0 or later.
 - **Daemon-cached by default.** Forces fnox's per-user daemon on
   (`FNOX_DAEMON=on`). Once the daemon is warmed for a profile, resolutions that
   miss mise's env cache — a new shell, an expired TTL, an offsite `cd` — are
@@ -29,6 +32,7 @@ Resolving N secrets through N separate `fnox get` calls is N serial provider
 round trips and gives the plugin a different failure surface from fnox's batch
 export path. With a remote provider, this can dominate directory-activation
 time. A single `fnox export --format json` collapses that to one round trip,
+naming the exported keys keeps it from resolving the rest of the profile,
 and forcing the fnox daemon means repeated and offsite resolutions never re-hit
 the provider at all.
 
@@ -259,9 +263,32 @@ Warnings show key/profile names only. Secret values are never logged.
 ## Batch export
 
 Runs one `fnox export --format json` per profile, then filters and maps locally.
-This is the only fetch path. fnox does not expose a key-filtered `export`, and
-repeated `fnox get KEY` calls have different failure semantics from batch
-export.
+This is the only fetch path: repeated `fnox get KEY` calls have different
+failure semantics from batch export. The plugin requires fnox 1.42.0 or later,
+the first release whose `export` takes `KEY` arguments.
+
+Which secrets fnox resolves depends on the `export` list:
+
+| `export` list | fnox call per profile | Resolved |
+|:--|:--|:--|
+| Every `from` is an exact name (selectors, mappings, and transforms without `*`) | `fnox list`, then `fnox export --format json KEY...` | Only the named keys the profile defines |
+| Any `from` contains `*` | `fnox export --format json` | The whole profile |
+| No `export` list | `fnox export --format json` | The whole profile |
+
+`fnox list` prints the keys a profile defines without resolving any secret. The
+plugin passes `fnox export` only the named keys that profile defines, because
+fnox fails the whole call on an unknown key. A profile that defines none of the
+names is not exported at all. A name that no profile defines still follows
+`on_missing`, as before. If `fnox list` fails, that profile counts as a failed
+fetch under `on_failure`; there is no retry another way.
+
+Two behaviors differ from a whole-profile fetch when every entry is exact:
+
+- fnox includes a named key whatever its `env` setting, so a secret declared
+  `env = false` is exported when an entry names it. A whole-profile export skips
+  such secrets.
+- `on_conflict = "error"` compares only the named keys, so a duplicate key
+  that the `export` list does not name no longer fails the load.
 
 ## Profile semantics
 
