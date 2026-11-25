@@ -9,8 +9,13 @@ make_daemon_stub() { # dir
     mkdir -p "$bin"
     cat > "$bin/fnox" <<STUB
 #!/usr/bin/env bash
-# Record the daemon env for the export call; ignore config-files probe.
+# Record the daemon env for the export call. `list` names the keys the profile
+# defines, as the real fnox prints them; the config-files probe is ignored.
 for arg in "\$@"; do
+    if [ "\$arg" = "list" ]; then
+        printf ' Key  Type\n ALPHA_TOKEN  default value\n'
+        exit 0
+    fi
     if [ "\$arg" = "export" ]; then
         printf '%s' "\${FNOX_DAEMON:-<unset>}" > "$dir/daemon-seen"
         printf '{"secrets":{"ALPHA_TOKEN":"alpha-value"}}\n'
