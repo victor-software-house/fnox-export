@@ -50,3 +50,40 @@ plain = { type = "plain" }
 [secrets]
 DEFAULT_TOKEN = { default = "default-value" }
 '
+
+# Secrets resolved through password-store, whose `pass` binary the named-keys
+# tests replace with a logging stub that fails: a call to it means fnox resolved
+# that secret.
+NAMED_FNOX='[providers]
+plain = { type = "plain" }
+store = { type = "password-store" }
+
+[profiles.named.secrets]
+ALPHA_TOKEN = { default = "alpha-value" }
+BETA_TOKEN  = { default = "beta-value" }
+SERVICE_FOO = { default = "service-foo" }
+
+[profiles.named.secrets.BROKEN]
+provider = "store"
+value = "broken/entry"
+'
+
+NAMED_MULTI_FNOX='[providers]
+plain = { type = "plain" }
+store = { type = "password-store" }
+
+[profiles.left.secrets]
+LEFT_ONLY  = { default = "left-value" }
+SHARED_KEY = { default = "left-shared" }
+
+[profiles.left.secrets.LEFT_BROKEN]
+provider = "store"
+value = "left/entry"
+
+[profiles.right.secrets]
+RIGHT_ONLY = { default = "right-value" }
+
+[profiles.right.secrets.RIGHT_BROKEN]
+provider = "store"
+value = "right/entry"
+'
