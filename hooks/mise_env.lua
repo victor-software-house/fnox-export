@@ -2,7 +2,8 @@
 -- into mise environment variables using a flat, from-based grammar.
 --
 -- The plugin performs one batched `fnox export --format json` per profile and
--- filters the result locally.
+-- filters the result locally. When every export entry names its source exactly,
+-- the call names those keys, so fnox resolves only them.
 --
 -- The plugin is generic and public-safe: it contains no secret names, provider
 -- names, or personal data. The `profiles`, `export` list, and transforms all
@@ -192,8 +193,11 @@ function PLUGIN:MiseEnv(ctx)
 
     local profiles_to_run = #profiles > 0 and profiles or { "" }
 
+    -- Resolve only the named sources when every entry names one exactly.
+    local wanted = entries ~= nil and parser.exact_sources(entries) or nil
+
     local source_map, had_failure = fnox.batch_fetch(fnox_bin, config,
-        profiles_to_run, no_defaults, on_conflict, on_failure, daemon)
+        profiles_to_run, no_defaults, on_conflict, on_failure, daemon, wanted)
 
     local env_vars
     if export_all_mode then

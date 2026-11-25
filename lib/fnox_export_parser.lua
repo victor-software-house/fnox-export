@@ -97,6 +97,23 @@ function M.parse_export_entries(export_list, global_on_missing)
     return entries
 end
 
+-- The distinct source names the entries read, in first-use order, or nil when
+-- any `from` contains a wildcard (the whole profile is then needed).
+function M.exact_sources(entries)
+    local names = {}
+    local seen = {}
+    for _, entry in ipairs(entries) do
+        if util.has_wildcard(entry.from) then
+            return nil
+        end
+        if not seen[entry.from] then
+            seen[entry.from] = true
+            names[#names + 1] = entry.from
+        end
+    end
+    return names
+end
+
 function M.is_transform_entry(entry)
     return entry.to == nil and M.has_transform(entry)
 end
